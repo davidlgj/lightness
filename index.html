@@ -19,7 +19,7 @@
         var canvas = document.getElementById('canvas');
         
         //wait for image to load
-        jQuery(image).load(function(){
+        $(image).load(function(){
         
           canvas.width  = image.width;
           canvas.height = image.height;
@@ -60,9 +60,34 @@
             ctx.fillText('darkest' ,min.x+min.width*0.1,min.y+min.height/2);
             ctx.fillStyle = '#000';
             ctx.fillText('lightest',max.x+max.width*0.1,max.y+max.height/2);
+
+            //comparison,
+            //scale image down to gridx,gridy pixels and blow it up
+            var start = new Date();
+            var comp = $('#comparison').get(0);
+            var ctx = comp.getContext('2d');
+            ctx.drawImage(image,0,0,$scope.cols,$scope.rows);
+            var data = ctx.getImageData(0,0,$scope.cols,$scope.rows).data;
+            
+            var dx = image.width  / $scope.cols;
+            var dy = image.height / $scope.rows;
+            
+            for (var y=0; y<$scope.rows; y++) {
+              for (var x=0; x<$scope.cols; x++) {
+                var l = y*$scope.cols*4 + x*4;
+                ctx.fillStyle = 'rgb('+data[l]+','+data[l+1]+','+data[l+2]+')';
+                ctx.fillRect(x*dx,y*dy,dx,dy);
+              }
+            }
+            $scope.timecomp = new Date() - start;
+
+
           }
           
           $scope.$apply($scope.update);
+          
+          
+          
         });
       }
     </script>
@@ -73,8 +98,9 @@
     Columns <input type="number" ng-model="cols"  /><br/>
     Rows    <input type="number" ng-model="rows" /><br/>
     Greyscale <input type="checkbox" ng-model="greyscale" /><br/>
-    <button ng-click="update()">Update</button> {{time}}ms to calculate <br/>
-    <img id="image" src="images/tree.jpg" />
+    <button ng-click="update()">Update</button> {{time}}ms to calculate, pure scaling takes {{timecomp}}ms <br/>
     <canvas id="canvas" width="640" height="853"></canvas>
+    <canvas id="comparison" width="640" height="853"></canvas>
+    <img id="image" src="images/tree.jpg" />
   </body>
 </html>
