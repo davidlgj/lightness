@@ -1,0 +1,72 @@
+<!doctype>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title> lightness </title>
+    <script src="lib/tinycolor-min.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+    <script src="lightness.js" type="text/javascript" language="javascript" charset="utf-8" ></script>
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.0.2/angular.min.js"></script>
+    <script type="text/javascript" charset="utf-8">
+    
+      function DemoCtrl($scope) {
+        $scope.greyscale = false;
+        $scope.cols = 3;
+        $scope.rows = 3;
+        
+        var image  = document.getElementById('image');
+        var canvas = document.getElementById('canvas');
+        canvas.width  = image.width;
+        canvas.height = image.height;
+        
+        //this should be in a directive but since this is just a demo
+        $scope.update = function() {
+          var start = new Date();
+          var data = lightness(image,$scope.cols,$scope.rows);
+          $scope.time = new Date() - start; 
+
+          //lighest and darkest
+          var min = data[0];
+          var max = data[0];
+          
+          for (var i=0; i<data.length; i++) {
+            if (data[i].hsl.l > max.hsl.l) {
+              max = data[i];
+            }
+            if (data[i].hsl.l < min.hsl.l) {
+              min = data[i];
+            }
+          }
+          $scope.lightest = max;
+          $scope.darkest  = min;
+        
+          var ctx = canvas.getContext('2d');
+          for (var i=0; i<data.length; i++) {
+            var c = data[i].color;
+            if ($scope.greyscale) {
+              ctx.fillStyle = tinycolor.greyscale(c).toRgbString();
+            } else {
+              ctx.fillStyle = c.toRgbString();
+            }
+            ctx.fillRect(data[i].x,data[i].y,data[i].width,data[i].height);
+          }
+          
+          ctx.fillStyle = '#fff';
+          ctx.fillText('darkest' ,min.x+min.width*0.1,min.y+min.height/2);
+          ctx.fillStyle = '#000';
+          console.log(min)
+          ctx.fillText('lightest',max.x+max.width*0.1,max.y+max.height/2);
+        }
+        $scope.update();
+      }
+    </script>
+  </head>
+  <body ng-app ng-controller="DemoCtrl">
+    <h1>lightness</h1>
+    Columns <input type="number" ng-model="cols"  /><br/>
+    Rows    <input type="number" ng-model="rows" /><br/>
+    Greyscale <input type="checkbox" ng-model="greyscale" /><br/>
+    <button ng-click="update()">Update</button> {{time}}ms to calculate <br/>
+    <img id="image" src="images/tree.jpg" />
+    <canvas id="canvas"></canvas>
+  </body>
+</html>
