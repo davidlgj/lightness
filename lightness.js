@@ -47,7 +47,6 @@
     }
     
     
-    
     //faster to get all pixels, than for each block
     var pixels = ctx.getImageData(0,0,canvas.width,canvas.height); 
     
@@ -110,6 +109,7 @@
    */ 
   var lightness = function(image,gridx,gridy) {
     var pixels = pixelate(image,gridx,gridy);
+    
     for (var i=0; i<pixels.length; i++) {
       var p = pixels[i];
       p.color = tinycolor(p.color);
