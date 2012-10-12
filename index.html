@@ -15,8 +15,9 @@
         $scope.rows = 3;
         
       
-        var image  = document.getElementById('image');
-        var canvas = document.getElementById('canvas');
+        var image      = document.getElementById('image');
+        var canvas     = document.getElementById('canvas');
+        var comparison = document.getElementById('comparison');
         
         //wait for image to load
         $(image).load(function(){
@@ -25,10 +26,10 @@
           canvas.height = image.height;
         
           //this should be in a directive but since this is just a demo
-          $scope.update = function() {
+          var update = function(image,canvas,cols,rows,greyscale,method) {
             var start = new Date();
-            var data = lightness(image,$scope.cols,$scope.rows);
-            $scope.time = new Date() - start; 
+            var data  = lightness(image,cols,rows,method);
+            var time  = new Date() - start; 
             
             //lighest and darkest
             var min = data[0];
@@ -42,13 +43,11 @@
                 min = data[i];
               }
             }
-            $scope.lightest = max;
-            $scope.darkest  = min;
-          
+            
             var ctx = canvas.getContext('2d');
             for (var i=0; i<data.length; i++) {
               var c = data[i].color;
-              if ($scope.greyscale) {
+              if (greyscale) {
                 ctx.fillStyle = tinycolor.greyscale(c).toRgbString();
               } else {
                 ctx.fillStyle = c.toRgbString();
@@ -60,29 +59,15 @@
             ctx.fillText('darkest' ,min.x+min.width*0.1,min.y+min.height/2);
             ctx.fillStyle = '#000';
             ctx.fillText('lightest',max.x+max.width*0.1,max.y+max.height/2);
-
-            //comparison,
-            //scale image down to gridx,gridy pixels and blow it up
-            var start = new Date();
-            var comp = $('#comparison').get(0);
-            var ctx = comp.getContext('2d');
-            ctx.drawImage(image,0,0,$scope.cols,$scope.rows);
-            var data = ctx.getImageData(0,0,$scope.cols,$scope.rows).data;
             
-            var dx = image.width  / $scope.cols;
-            var dy = image.height / $scope.rows;
-            
-            for (var y=0; y<$scope.rows; y++) {
-              for (var x=0; x<$scope.cols; x++) {
-                var l = y*$scope.cols*4 + x*4;
-                ctx.fillStyle = 'rgb('+data[l]+','+data[l+1]+','+data[l+2]+')';
-                ctx.fillRect(x*dx,y*dy,dx,dy);
-              }
-            }
-            $scope.timecomp = new Date() - start;
-
-
+            return time;
           }
+          
+          
+          $scope.update = function() {
+            $scope.time     = update(image,canvas,$scope.cols,$scope.rows,$scope.greyscale,'average');
+            $scope.timecomp = update(image,comparison,$scope.cols,$scope.rows,$scope.greyscale);
+          };
           
           $scope.$apply($scope.update);
           
