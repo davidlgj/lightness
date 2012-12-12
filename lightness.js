@@ -60,9 +60,10 @@
       
       //loop over pixels adding them up
       for (var iy=y; iy<dy; iy++) {
+        var ly = iy*pixels.width*4;
         for (var ix=x; ix<dx; ix++) {
           //calculate where in the array we are
-          var l = iy*pixels.width*4 + ix*4;
+          var l = ly + ix*4;
           r += pixels.data[l];
           g += pixels.data[l+1];
           b += pixels.data[l+2];
@@ -158,6 +159,7 @@
     
     for (var i=0; i<pixels.length; i++) {
       var p = pixels[i];
+      p.rgb   = p.color;
       p.color = tinycolor(p.color);
       p.hsl   = p.color.toHsl(); 
     }
@@ -166,6 +168,6 @@
   
   root.lightness = lightness; 
   root.lightness.load = load;
-  root.lightness.pixelate = pixelate;
+  root.lightness.pixelate = pixelate2;
   
 })(this);
