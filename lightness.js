@@ -19,19 +19,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
  * depends on TinyColor
  */ 
 (function(root){
-
-  var load = function(image,cb) {
-      if (typeof image === 'string') {
-        var src = image;
-        image = new Image();
-        image.onload = function(){ cb(image) };
-        image.src = src;
-      } else {
-        cb(image);
-      }
-  };
- 
-  
   
   
   //pixelate by scaling image
@@ -83,7 +70,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   };
   
   root.lightness = lightness; 
-  root.lightness.load = load;
   root.lightness.pixelate = pixelate;
   
 })(this);
