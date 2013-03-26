@@ -17,33 +17,30 @@
       
         var image      = document.getElementById('image');
         var canvas     = document.getElementById('canvas');
-        var comparison = document.getElementById('comparison');
         
-        //wait for image to load
-        $(image).load(function(){
         
-          canvas.width  = image.width;
-          canvas.height = image.height;
-        
-          //this should be in a directive but since this is just a demo
-          var update = function(image,canvas,cols,rows,greyscale,method) {
+        //this should be in a directive but since this is just a demo
+        var update = function(image,canvas,cols,rows,greyscale) {
             var start = new Date();
-            var data  = lightness(image,cols,rows,method);
+            var data  = lightness(image,cols,rows);
             var time  = new Date() - start; 
             
             //lighest and darkest
-            var min = data[0];
-            var max = data[0];
+            var darkest = data[0];
+            var lightest = data[0];
             
             for (var i=0; i<data.length; i++) {
-              if (data[i].hsl.l > max.hsl.l) {
-                max = data[i];
+              if (data[i].hsl.l > lightest.hsl.l) {
+                lightest = data[i];
               }
-              if (data[i].hsl.l < min.hsl.l) {
-                min = data[i];
+              if (data[i].hsl.l < darkest.hsl.l) {
+                darkest = data[i];
               }
             }
             
+            var block_width  = Math.ceil(image.width/cols);
+            var block_height = Math.ceil(image.height/rows);
+
             var ctx = canvas.getContext('2d');
             for (var i=0; i<data.length; i++) {
               var c = data[i].color;
@@ -52,28 +49,47 @@
               } else {
                 ctx.fillStyle = c.toRgbString();
               }
-              ctx.fillRect(data[i].x,data[i].y,data[i].width,data[i].height);
+              
+              var x = (i % cols)* block_width;
+              var y = Math.floor(i/cols) * block_height;
+              ctx.fillRect(x,y,block_width,block_height);
+              
+              //text
+              if (data[i] === darkest) {
+                ctx.fillStyle = '#fff';
+                ctx.fillText('darkest' ,x+block_width*0.1,y+block_height/2);
+              } else if (data[i] === lightest) {
+                ctx.fillStyle = '#000';
+                ctx.fillText('lightest',x+block_width*0.1,y+block_height/2);
+              }
             }
             
-            ctx.fillStyle = '#fff';
-            ctx.fillText('darkest' ,min.x+min.width*0.1,min.y+min.height/2);
-            ctx.fillStyle = '#000';
-            ctx.fillText('lightest',max.x+max.width*0.1,max.y+max.height/2);
+            
             
             return time;
-          }
-          
-          
-          $scope.update = function() {
-            $scope.time     = update(image,canvas,$scope.cols,$scope.rows,$scope.greyscale,'average');
-            $scope.timecomp = update(image,comparison,$scope.cols,$scope.rows,$scope.greyscale);
-          };
-          
-          $scope.$apply($scope.update);
-          
-          
-          
+        }
+        
+        //wait for image to load
+        $(image).load(function(){
+        
+          canvas.width  = image.width;
+          canvas.height = image.height;
+          $scope.time = update(image,canvas,$scope.cols,$scope.rows,$scope.greyscale);
+          $scope.$apply();          
         });
+        
+      //watch for changes of           
+      var updateOnChange = function(val,old) {
+        if (angular.isDefined(val)) {
+            $scope.time = update(image,canvas,$scope.cols,$scope.rows,$scope.greyscale);
+        };
+      };
+      
+      $scope.$watch('cols',updateOnChange);
+      $scope.$watch('rows',updateOnChange);
+      $scope.$watch('greyscale',updateOnChange);
+        
+        
       }
     </script>
   </head>
@@ -83,9 +99,8 @@
     Columns <input type="number" ng-model="cols"  /><br/>
     Rows    <input type="number" ng-model="rows" /><br/>
     Greyscale <input type="checkbox" ng-model="greyscale" /><br/>
-    <button ng-click="update()">Update</button> {{time}}ms to calculate, pure scaling takes {{timecomp}}ms <br/>
+    {{time}}ms to calculate <br/>
     <canvas id="canvas" width="640" height="853"></canvas>
-    <canvas id="comparison" width="640" height="853"></canvas>
     <img id="image" src="images/tree.jpg" />
   </body>
 </html>
